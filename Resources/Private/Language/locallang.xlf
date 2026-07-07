@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0" xmlns="urn:oasis:names:tc:xliff:document:1.1">
+	<file source-language="en" datatype="plaintext" original="messages" date="2026-06-25T00:00:00Z" product-name="sepa-donate">
+		<header/>
+		<body>
+			<trans-unit id="extsettings.iban">
+				<source>IBAN</source>
+			</trans-unit>
+
+			<trans-unit id="extsettings.recipient">
+				<source>Recipient</source>
+			</trans-unit>
+
+			<trans-unit id="extsettings.recipient_mail">
+				<source>Recipient E-Mail</source>
+			</trans-unit>
+
+			<trans-unit id="extsettings.button_bar_amounts">
+				<source>Amounts for Button Bar (comma-separated)</source>
+			</trans-unit>
+
+		</body>
+	</file>
+</xliff>

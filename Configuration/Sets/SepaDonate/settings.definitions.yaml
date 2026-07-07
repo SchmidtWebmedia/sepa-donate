@@ -1,0 +1,34 @@
+categories:
+  sepaDonate:
+    label: 'SEPA Donation'
+
+settings:
+  sepaDonate.iban:
+    label: 'IBAN'
+    category: sepaDonate
+    type: string
+    default: ''
+
+  sepaDonate.bic:
+    label: 'BIC'
+    category: sepaDonate
+    type: string
+    default: ''
+
+  sepaDonate.recipient:
+    label: 'Recipient'
+    category: sepaDonate
+    type: string
+    default: ''
+
+  sepaDonate.buttonBarAmounts:
+    label: 'Button Bar Amounts'
+    category: sepaDonate
+    type: string
+    default: ''
+
+  sepaDonate.mail.to:
+    label: 'Mail: To'
+    category: sepaDonate
+    type: string
+    default: ''

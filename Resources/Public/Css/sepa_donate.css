@@ -1,0 +1,47 @@
+/*
+ * sepa_donate — Funktionales CSS
+ * Kein Design, nur Verhalten.
+ * Styling übernimmt das SitePackage.
+ */
+
+.donation-receipt__address {
+    display: none;
+}
+
+.donation-receipt__address.is-visible {
+    display: block;
+}
+
+.donation-result {
+    display: none;
+}
+
+.donation-result.is-visible {
+    display: block;
+}
+
+.donation-result__value--copyable {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    padding: 0.35em 0.5em;
+    margin: -0.35em -0.5em;
+    border-radius: 6px;
+    transition: background-color 0.15s ease;
+}
+
+.donation-result__value--copyable:active {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.donation-result__value--copyable::after {
+    content: "⧉";
+    margin-left: 0.4em;
+    opacity: 0.5;
+    font-size: 0.85em;
+}
+
+.donation-result__value--copyable.is-copied::after {
+    content: "✓";
+    opacity: 1;
+    color: green; /* an euer Farbschema anpassen */
+}

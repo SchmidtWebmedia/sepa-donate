@@ -1,0 +1,27 @@
+plugin.tx_sepadonate {
+	settings {
+		iban         ={$sepaDonate.iban}
+		bic = {$sepaDonate.bic}
+		recipient   ={$sepaDonate.recipient}
+
+		button_bar_amounts     = {$sepaDonate.buttonBarAmounts}
+
+		email {
+			to       ={$sepaDonate.mail.to}
+			from      ={$sepaDonate.mail.from}
+			subject  = {$sepaDonate.mail.subject}
+		}
+	}
+
+	view {
+		templateRootPaths {
+			0 = EXT:sepa_donate/Resources/Private/Templates/
+		}
+		partialRootPaths {
+			0 = EXT:sepa_donate/Resources/Private/Partials/
+		}
+		layoutRootPaths {
+			0 = EXT:sepa_donate/Resources/Private/Layouts/
+		}
+	}
+}
