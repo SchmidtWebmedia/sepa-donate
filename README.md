@@ -2,14 +2,37 @@
 
 TYPO3 extension for integrating a SEPA donation form with EPC GiroCode QR code generation.
 
-The extension provides a frontend plugin in which visitors can select a predefined donation amount or enter an individual amount. Optionally, contact details for a donation receipt can be entered. After submission, the extension generates an EPC QR code for the bank transfer together with a unique reference and can send a notification email to the configured recipient.
+SEPA Donate provides a lightweight donation flow directly inside TYPO3. Visitors prepare a SEPA bank transfer by selecting a donation amount, optionally entering their details for a donation receipt and scanning the generated EPC GiroCode with their banking app. No external payment provider is required.
+
+## Features
+
+- **EPC GiroCode generation** for SEPA bank transfers that can be scanned with compatible banking apps.
+- **Predefined donation amounts** configurable through TYPO3 Site Settings.
+- **Individual donation amounts** entered directly by the visitor.
+- **Unique payment purpose** generated for every prepared donation to make incoming transfers easier to identify.
+- **Optional donation receipt details** including name, address and email address.
+- **Notification emails** when a visitor prepares a donation, including receipt details when provided.
+- **TYPO3 Site Set integration** for account and extension configuration.
+- **Multi-site support** with configuration resolved from the current TYPO3 site.
+- **Subdirectory support** by deriving the endpoint from the TYPO3 Site Base.
+- **Customizable Fluid templates** so the form can be fully integrated into the design of a SitePackage.
+- **Stable `data-sepa-*` JavaScript hooks**, allowing CSS classes and IDs to be changed in template overrides without breaking the frontend logic.
+- **Multiple donation forms per page** supported by the JavaScript integration.
+- **Built-in spam prevention without Captcha or external services**, including a hidden trap field, request rate limiting and short-lived single-use form tokens.
+- **Same-origin protection** for browser requests when an Origin header is available.
+- **No payment provider or bank API required.** The payment itself remains a normal SEPA transfer performed in the donor's banking application.
+- **No external spam-protection service or additional frontend framework required.**
+
+The extension deliberately does not process payments itself and does not verify incoming transfers. Generating a GiroCode means that a transfer has been prepared, not that a donation has been received.
 
 ## Requirements
 
 - TYPO3 13 LTS or TYPO3 14
 - Composer-based TYPO3 installation
 
-## Installation
+# Integration
+
+## 1. Installation
 
 Install the extension via Composer:
 
@@ -19,7 +42,7 @@ composer require schmidtwebmedia/sepa-donate
 
 After installation, clear the TYPO3 caches if necessary.
 
-## 1. Add the Site Set
+## 2. Add the Site Set
 
 The extension provides the TYPO3 Site Set:
 
@@ -29,7 +52,7 @@ schmidtwebmedia/sepa-donate
 
 Add **SEPA Donate** as a dependency to the Site Set used by your site. This loads the required TypoScript and makes the SEPA Donate site settings available.
 
-## 2. Configure the Site Settings
+## 3. Configure the Site Settings
 
 Configure the following settings for your TYPO3 site:
 
@@ -43,36 +66,29 @@ Configure the following settings for your TYPO3 site:
 
 The IBAN and recipient are required for generating the EPC GiroCode. If no notification address is configured, no notification email is sent.
 
-## 3. Add the Donation Form
+## 4. Add the Donation Form
 
 Create a new content element on the page where the donation form should be displayed and select the plugin:
 
 **SEPA Donate — Spendenformular**
 
-The plugin renders the donation form and automatically includes the JavaScript and CSS required for its functionality.
+The plugin renders the donation form and automatically includes the JavaScript and functional CSS required by the extension.
 
-Visitors can:
+Visitors can select one of the configured donation amounts or enter an individual amount. They can optionally request a donation receipt and provide the required contact details. After submitting the form, an EPC GiroCode is generated containing the configured account, donation amount and unique payment purpose.
 
-- select one of the configured donation amounts,
-- enter an individual amount,
-- optionally request a donation receipt and provide their contact details,
-- generate an EPC GiroCode for the bank transfer.
+## 5. Notification Emails
 
-The generated result contains the amount, recipient, IBAN, unique payment reference and QR code that can be scanned with a compatible banking app.
+When a GiroCode is generated, the extension can send a notification email to the address configured in `sepaDonate.mail.to`.
 
-## Notification Emails
+The notification contains the donation amount and generated payment purpose. If the visitor requested a donation receipt, the entered contact details are included as well.
 
-When a QR code is generated, the extension can send a notification email to the address configured in `sepaDonate.mail.to`.
-
-The notification contains the donation amount and generated reference. If the visitor requested a donation receipt, the entered contact details are included as well.
-
-The notification indicates a **possible donation** only. Generating the QR code does not confirm that the bank transfer was actually executed.
+The notification indicates a **possible donation** only. Generating the QR code does not confirm that the bank transfer was actually executed or received.
 
 Mail delivery uses the TYPO3 mail configuration.
 
-## Templates and Styling
+## 6. Templates and Styling
 
-The extension contains the complete functional frontend, but it can be adapted to the design of the integrating TYPO3 project.
+The extension contains the complete functional frontend, but its appearance is intentionally designed to be adapted by the integrating SitePackage.
 
 The default template is located at:
 
@@ -92,22 +108,43 @@ plugin.tx_sepadonate {
 }
 ```
 
-The extension also ships with its own CSS. Project-specific styling can be added or the template and styles can be overridden in the SitePackage as required.
+### Template contract
 
-## How It Works
+CSS classes and HTML IDs are not part of the JavaScript API and can be changed freely when overriding the template.
 
-The frontend sends the entered donation data to the extension endpoint:
+The `data-sepa-*` attributes are the stable hooks used by the extension JavaScript and must be preserved. The field names used for submitted data, especially `address[...]`, `formToken` and `company`, must also remain unchanged.
 
-```text
-/api/sepa-donate/qr-code
-```
+This separation allows the HTML structure and visual styling to be adapted extensively without coupling the JavaScript behavior to project-specific CSS classes.
 
-TYPO3 resolves the current site and the endpoint reads the SEPA configuration from its Site Settings. The extension then:
+The CSS shipped by the extension contains only the functional behavior required by the form. Project-specific styling should normally be provided by the SitePackage.
 
-1. generates a unique donation reference,
-2. creates an EPC GiroCode containing the configured account, amount and reference,
-3. optionally sends a notification email,
-4. returns the QR code and payment information to the frontend.
+## 7. Spam Prevention
+
+The public QR-code endpoint includes several lightweight protection mechanisms without requiring a Captcha or an external service:
+
+- a hidden trap field for generic form bots,
+- one request per TYPO3 site and IP address within 60 seconds,
+- a cryptographically random form token generated when the form is rendered,
+- a minimum token age of 2 seconds,
+- a token lifetime of 30 minutes,
+- single-use tokens that are removed after successful processing,
+- same-origin validation when the browser sends an `Origin` header.
+
+These measures are intended to reduce automated endpoint and notification-mail abuse while keeping the donation flow frictionless for visitors.
+
+## 8. How It Works
+
+The frontend sends the entered donation data to the extension endpoint. The endpoint path is derived from the current TYPO3 Site Base, so installations using a subdirectory are supported as well.
+
+TYPO3 resolves the current site and the extension reads the SEPA configuration from its Site Settings. The extension then:
+
+1. validates the request and spam-prevention information,
+2. generates a unique donation payment purpose,
+3. creates an EPC GiroCode containing the configured account, amount and unstructured payment purpose,
+4. optionally sends a notification email,
+5. returns the QR code and payment information to the frontend.
+
+The generated payment purpose is stored in the EPC GiroCode as unstructured remittance information. It is not an ISO 11649 structured creditor reference.
 
 The actual payment is performed independently in the donor's banking application. The extension does not connect to a bank and does not verify incoming payments.
 
