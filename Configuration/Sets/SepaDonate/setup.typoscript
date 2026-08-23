@@ -8,8 +8,6 @@ plugin.tx_sepadonate {
 
 		email {
 			to       ={$sepaDonate.mail.to}
-			from      ={$sepaDonate.mail.from}
-			subject  = {$sepaDonate.mail.subject}
 		}
 	}
 
