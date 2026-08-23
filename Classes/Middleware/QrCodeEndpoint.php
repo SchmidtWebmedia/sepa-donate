@@ -18,7 +18,7 @@ use TYPO3\CMS\Core\Site\Entity\Site;
 final class QrCodeEndpoint implements MiddlewareInterface
 {
     private const ENDPOINT_PATH = '/api/sepa-donate/qr-code';
-    private const MAX_REQUESTS_PER_MINUTE = 10;
+    private const RATE_LIMIT_SECONDS = 60;
     private const MAX_AMOUNT = 999999999.99;
 
     public function __construct(
@@ -53,7 +53,7 @@ final class QrCodeEndpoint implements MiddlewareInterface
             return new JsonResponse(
                 ['error' => 'Too many requests'],
                 429,
-                ['Retry-After' => '60']
+                ['Retry-After' => (string)self::RATE_LIMIT_SECONDS]
             );
         }
 
@@ -62,7 +62,7 @@ final class QrCodeEndpoint implements MiddlewareInterface
             return new JsonResponse(['error' => 'Invalid request'], 400);
         }
 
-        if (trim((string)($params['website'] ?? '')) !== '') {
+        if (trim((string)($params['company'] ?? '')) !== '') {
             return new JsonResponse(['error' => 'Invalid request'], 400);
         }
 
@@ -122,13 +122,12 @@ final class QrCodeEndpoint implements MiddlewareInterface
         $remoteAddress = (string)($serverParams['REMOTE_ADDR'] ?? 'unknown');
         $cache = $this->cacheManager->getCache('hash');
         $cacheKey = 'sepa_donate_' . sha1($site->getIdentifier() . '|' . $remoteAddress);
-        $requests = (int)($cache->get($cacheKey) ?: 0);
 
-        if ($requests >= self::MAX_REQUESTS_PER_MINUTE) {
+        if ($cache->has($cacheKey)) {
             return true;
         }
 
-        $cache->set($cacheKey, $requests + 1, [], 60);
+        $cache->set($cacheKey, true, [], self::RATE_LIMIT_SECONDS);
 
         return false;
     }
