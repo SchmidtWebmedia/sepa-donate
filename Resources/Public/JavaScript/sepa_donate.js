@@ -12,9 +12,10 @@
         const confirmationEl = donationForm.querySelector('[data-sepa-confirmation]');
         const donationReceiptCheck = donationForm.querySelector('[data-sepa-receipt-toggle]');
         const addressBlock = donationForm.querySelector('[data-sepa-receipt-address]');
+        const formToken = donationForm.querySelector('[name="formToken"]');
         const endpoint = donationForm.dataset.sepaEndpoint;
 
-        if (!amountInput || !submitBtn || !result || !qrImg || !purposeEl || !amountEl || !confirmationEl || !endpoint) {
+        if (!amountInput || !submitBtn || !result || !qrImg || !purposeEl || !amountEl || !confirmationEl || !formToken || !endpoint) {
             console.error('SEPA Donate: required template hooks are missing.');
             return;
         }
@@ -84,6 +85,7 @@
 
             const formData = new FormData();
             formData.append('amount', String(currentAmount));
+            formData.append('formToken', formToken.value);
             formData.append('company', donationForm.querySelector('[name="company"]')?.value || '');
 
             if (donationReceiptCheck?.checked) {
