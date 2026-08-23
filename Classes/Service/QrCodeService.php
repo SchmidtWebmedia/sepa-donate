@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Schmidtwebmedia\SepaDonate\Service;
 
-use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -16,16 +15,16 @@ class QrCodeService
         string $iban,
         string $bic,
         string $recipient,
-        float  $amount,
-        string $reference,
-        int    $size = 200,
+        float $amount,
+        string $purpose,
+        int $size = 200,
     ): string {
         $payload = $this->buildEpcPayload(
             iban: $iban,
             bic: $bic,
             recipient: $recipient,
             amount: $amount,
-            reference: $reference
+            purpose: $purpose,
         );
 
         $renderer = new ImageRenderer(
@@ -42,10 +41,10 @@ class QrCodeService
         string $iban,
         string $bic,
         string $recipient,
-        float  $amount,
-        string $reference,
+        float $amount,
+        string $purpose,
     ): string {
-        // EPC069-12 Standard
+        // EPC069-12: structured reference remains empty, purpose is unstructured remittance information.
         return implode("\n", [
             'BCD',
             '002',
@@ -56,7 +55,8 @@ class QrCodeService
             $iban,
             'EUR' . number_format($amount, 2, '.', ''),
             '',
-            $reference,
+            '',
+            $purpose,
             '',
         ]);
     }
