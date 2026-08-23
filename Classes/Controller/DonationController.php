@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Schmidtwebmedia\SepaDonate\Controller;
 
 use Psr\Http\Message\ResponseInterface;
+use Schmidtwebmedia\SepaDonate\Service\FormTokenService;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
@@ -12,11 +13,18 @@ class DonationController extends ActionController
 {
     private const ENDPOINT_PATH = '/api/sepa-donate/qr-code';
 
+    public function __construct(
+        private readonly FormTokenService $formTokenService,
+    ) {}
+
     public function formAction(): ResponseInterface
     {
+        $site = $this->request->getAttribute('site');
+
         $this->view->assignMultiple([
             'amounts' => $this->getAmounts(),
-            'endpointPath' => $this->getEndpointPath(),
+            'endpointPath' => $this->getEndpointPath($site),
+            'formToken' => $site instanceof Site ? $this->formTokenService->generate($site) : '',
         ]);
 
         return $this->htmlResponse();
@@ -30,9 +38,8 @@ class DonationController extends ActionController
         );
     }
 
-    private function getEndpointPath(): string
+    private function getEndpointPath(mixed $site): string
     {
-        $site = $this->request->getAttribute('site');
         if (!$site instanceof Site) {
             return self::ENDPOINT_PATH;
         }
