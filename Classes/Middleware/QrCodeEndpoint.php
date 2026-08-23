@@ -9,26 +9,29 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Schmidtwebmedia\SepaDonate\Service\MailService;
+use Schmidtwebmedia\SepaDonate\Service\PurposeService;
 use Schmidtwebmedia\SepaDonate\Service\QrCodeService;
-use Schmidtwebmedia\SepaDonate\Service\ReferenceService;
+use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Http\JsonResponse;
-use TYPO3\CMS\Core\Http\Response;
 use TYPO3\CMS\Core\Site\Entity\Site;
 
 final class QrCodeEndpoint implements MiddlewareInterface
 {
     private const ENDPOINT_PATH = '/api/sepa-donate/qr-code';
+    private const MAX_REQUESTS_PER_MINUTE = 10;
+    private const MAX_AMOUNT = 999999999.99;
 
     public function __construct(
         private readonly QrCodeService $qrCodeService,
-        private readonly MailService $mailService
+        private readonly MailService $mailService,
+        private readonly CacheManager $cacheManager,
     ) {}
 
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler,
     ): ResponseInterface {
-        if ($request->getUri()->getPath() !== self::ENDPOINT_PATH) {
+        if (!str_ends_with($request->getUri()->getPath(), self::ENDPOINT_PATH)) {
             return $handler->handle($request);
         }
 
@@ -37,44 +40,124 @@ final class QrCodeEndpoint implements MiddlewareInterface
             return new JsonResponse(['error' => 'Site not resolved'], 404);
         }
 
+        $expectedPath = rtrim($site->getBase()->getPath(), '/') . self::ENDPOINT_PATH;
+        if ($request->getUri()->getPath() !== $expectedPath) {
+            return $handler->handle($request);
+        }
+
+        if ($request->getMethod() !== 'POST') {
+            return new JsonResponse(['error' => 'Method not allowed'], 405, ['Allow' => 'POST']);
+        }
+
+        if ($this->isRateLimitExceeded($request, $site)) {
+            return new JsonResponse(
+                ['error' => 'Too many requests'],
+                429,
+                ['Retry-After' => '60']
+            );
+        }
+
+        $params = $request->getParsedBody();
+        if (!is_array($params)) {
+            return new JsonResponse(['error' => 'Invalid request'], 400);
+        }
+
+        if (trim((string)($params['website'] ?? '')) !== '') {
+            return new JsonResponse(['error' => 'Invalid request'], 400);
+        }
+
+        if (!isset($params['amount']) || !is_numeric($params['amount'])) {
+            return new JsonResponse(['error' => 'Valid amount is required'], 400);
+        }
+
+        $amount = (float)$params['amount'];
+        if (!is_finite($amount) || $amount <= 0 || $amount > self::MAX_AMOUNT) {
+            return new JsonResponse(['error' => 'Valid amount is required'], 400);
+        }
+
         $settings = $site->getSettings();
-        $iban = (string)$settings->get('sepaDonate.iban');
-        $bic = (string)$settings->get('sepaDonate.bic');
-        $recipient = (string)$settings->get('sepaDonate.recipient');
+        $iban = trim((string)$settings->get('sepaDonate.iban'));
+        $bic = trim((string)$settings->get('sepaDonate.bic'));
+        $recipient = trim((string)$settings->get('sepaDonate.recipient'));
 
         if ($iban === '' || $recipient === '') {
             return new JsonResponse(['error' => 'SEPA settings incomplete'], 500);
         }
 
-        $params = $request->getParsedBody();
-        $amount = (float)($params['amount'] ?? 0);
-        $reference = ReferenceService::generate();
-        $size = min(1024, max(64, (int)($params['size'] ?? 200)));
-
-        if ($amount <= 0 || $reference === '') {
-            return new JsonResponse(['error' => 'amount and referenz are required'], 400);
+        $withReceipt = !empty($params['withReceipt']);
+        $address = $withReceipt ? $this->getAddress($params['address'] ?? null) : [];
+        if ($address === null) {
+            return new JsonResponse(['error' => 'Invalid address data'], 400);
         }
+
+        $purpose = PurposeService::generate();
+        $size = min(1024, max(64, (int)($params['size'] ?? 200)));
 
         $svg = $this->qrCodeService->generate(
             iban: $iban,
             bic: $bic,
             recipient: $recipient,
             amount: $amount,
-            reference: $reference,
+            purpose: $purpose,
             size: $size,
         );
 
         $this->mailService->sendNotification(
-            to: $settings->get('sepaDonate.mail.to'),
+            to: (string)$settings->get('sepaDonate.mail.to'),
             amount: $amount,
-            reference: $reference,
-            address: $params['withReceipt'] ? $params['address'] : []
+            purpose: $purpose,
+            address: $address,
         );
 
         return new JsonResponse([
             'qrCode' => base64_encode($svg),
-            'reference' => $reference,
-            'amount' => $amount
+            'purpose' => $purpose,
+            'amount' => $amount,
         ]);
+    }
+
+    private function isRateLimitExceeded(ServerRequestInterface $request, Site $site): bool
+    {
+        $serverParams = $request->getServerParams();
+        $remoteAddress = (string)($serverParams['REMOTE_ADDR'] ?? 'unknown');
+        $cache = $this->cacheManager->getCache('hash');
+        $cacheKey = 'sepa_donate_' . sha1($site->getIdentifier() . '|' . $remoteAddress);
+        $requests = (int)($cache->get($cacheKey) ?: 0);
+
+        if ($requests >= self::MAX_REQUESTS_PER_MINUTE) {
+            return true;
+        }
+
+        $cache->set($cacheKey, $requests + 1, [], 60);
+
+        return false;
+    }
+
+    private function getAddress(mixed $address): ?array
+    {
+        if (!is_array($address)) {
+            return null;
+        }
+
+        $allowedFields = ['firstname', 'lastname', 'street', 'postalcode', 'location', 'email'];
+        $normalizedAddress = [];
+
+        foreach ($allowedFields as $field) {
+            $value = $address[$field] ?? '';
+            if (!is_string($value) || mb_strlen($value) > 255) {
+                return null;
+            }
+
+            $normalizedAddress[$field] = trim($value);
+        }
+
+        if (
+            $normalizedAddress['email'] !== ''
+            && filter_var($normalizedAddress['email'], FILTER_VALIDATE_EMAIL) === false
+        ) {
+            return null;
+        }
+
+        return $normalizedAddress;
     }
 }
