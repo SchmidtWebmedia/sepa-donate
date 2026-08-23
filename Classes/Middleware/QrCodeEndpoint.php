@@ -8,6 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Schmidtwebmedia\SepaDonate\Service\FormTokenService;
 use Schmidtwebmedia\SepaDonate\Service\MailService;
 use Schmidtwebmedia\SepaDonate\Service\PurposeService;
 use Schmidtwebmedia\SepaDonate\Service\QrCodeService;
@@ -24,6 +25,7 @@ final class QrCodeEndpoint implements MiddlewareInterface
     public function __construct(
         private readonly QrCodeService $qrCodeService,
         private readonly MailService $mailService,
+        private readonly FormTokenService $formTokenService,
         private readonly CacheManager $cacheManager,
     ) {}
 
@@ -49,12 +51,8 @@ final class QrCodeEndpoint implements MiddlewareInterface
             return new JsonResponse(['error' => 'Method not allowed'], 405, ['Allow' => 'POST']);
         }
 
-        if ($this->isRateLimitExceeded($request, $site)) {
-            return new JsonResponse(
-                ['error' => 'Too many requests'],
-                429,
-                ['Retry-After' => (string)self::RATE_LIMIT_SECONDS]
-            );
+        if (!$this->hasValidOrigin($request)) {
+            return new JsonResponse(['error' => 'Invalid origin'], 403);
         }
 
         $params = $request->getParsedBody();
@@ -64,6 +62,19 @@ final class QrCodeEndpoint implements MiddlewareInterface
 
         if (trim((string)($params['company'] ?? '')) !== '') {
             return new JsonResponse(['error' => 'Invalid request'], 400);
+        }
+
+        $formToken = (string)($params['formToken'] ?? '');
+        if (!$this->formTokenService->isValid($formToken, $site)) {
+            return new JsonResponse(['error' => 'Invalid or expired form'], 403);
+        }
+
+        if ($this->isRateLimitExceeded($request, $site)) {
+            return new JsonResponse(
+                ['error' => 'Too many requests'],
+                429,
+                ['Retry-After' => (string)self::RATE_LIMIT_SECONDS]
+            );
         }
 
         if (!isset($params['amount']) || !is_numeric($params['amount'])) {
@@ -109,11 +120,34 @@ final class QrCodeEndpoint implements MiddlewareInterface
             address: $address,
         );
 
+        $this->formTokenService->consume($formToken);
+
         return new JsonResponse([
             'qrCode' => base64_encode($svg),
             'purpose' => $purpose,
             'amount' => $amount,
         ]);
+    }
+
+    private function hasValidOrigin(ServerRequestInterface $request): bool
+    {
+        $origin = trim($request->getHeaderLine('Origin'));
+        if ($origin === '') {
+            return true;
+        }
+
+        $originParts = parse_url($origin);
+        if (!is_array($originParts) || !isset($originParts['scheme'], $originParts['host'])) {
+            return false;
+        }
+
+        $requestUri = $request->getUri();
+        $originPort = $originParts['port'] ?? null;
+        $requestPort = $requestUri->getPort();
+
+        return strtolower($originParts['scheme']) === strtolower($requestUri->getScheme())
+            && strtolower($originParts['host']) === strtolower($requestUri->getHost())
+            && $originPort === $requestPort;
     }
 
     private function isRateLimitExceeded(ServerRequestInterface $request, Site $site): bool
