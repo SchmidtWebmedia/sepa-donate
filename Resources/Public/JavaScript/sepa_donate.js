@@ -84,7 +84,7 @@
 
             const formData = new FormData();
             formData.append('amount', String(currentAmount));
-            formData.append('website', donationForm.querySelector('[data-sepa-honeypot]')?.value || '');
+            formData.append('company', donationForm.querySelector('[name="company"]')?.value || '');
 
             if (donationReceiptCheck?.checked) {
                 formData.append('withReceipt', '1');
