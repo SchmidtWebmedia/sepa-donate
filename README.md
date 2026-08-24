@@ -4,7 +4,7 @@
 [![TYPO3 14](https://img.shields.io/badge/TYPO3-14-orange.svg?style=flat-square&logo=typo3&labelColor=292929&color=ff8700)](https://get.typo3.org/version/14)
 
 ![Latest Stable Version](https://poser.pugx.org/schmidtwebmedia/sepa-donation/d/total.svg?style=flat-square)
-![Monthly Downloads](https://poser.pugx.org/schmidtwebmedia/sepa-donation/d/monthly?style=flat-square)]
+![Monthly Downloads](https://poser.pugx.org/schmidtwebmedia/sepa-donation/d/monthly?style=flat-square)
 
 <a href="https://www.buymeacoffee.com/schmidtwebmedia" target="_blank">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 35px !important;">
