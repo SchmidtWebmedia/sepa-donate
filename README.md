@@ -1,5 +1,16 @@
 # SEPA Donate for TYPO3
 
+[![TYPO3 13](https://img.shields.io/badge/TYPO3-13-orange.svg?style=flat-square&logo=typo3&labelColor=292929&color=ff8700)](https://get.typo3.org/version/13)
+[![TYPO3 14](https://img.shields.io/badge/TYPO3-14-orange.svg?style=flat-square&logo=typo3&labelColor=292929&color=ff8700)](https://get.typo3.org/version/14)
+
+![Latest Stable Version](https://poser.pugx.org/schmidtwebmedia/sepa-donation/d/total.svg?style=flat-square)
+![Monthly Downloads](https://poser.pugx.org/schmidtwebmedia/sepa-donation/d/monthly?style=flat-square)]
+
+<a href="https://www.buymeacoffee.com/schmidtwebmedia" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 35px !important;">
+</a>
+
+
 TYPO3 extension for integrating a SEPA donation form with EPC GiroCode QR code generation.
 
 SEPA Donate provides a lightweight donation flow directly inside TYPO3. Visitors prepare a SEPA bank transfer by selecting a donation amount, optionally entering their details for a donation receipt and scanning the generated EPC GiroCode with their banking app. No external payment provider is required.
