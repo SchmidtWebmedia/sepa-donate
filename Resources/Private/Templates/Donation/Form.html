@@ -2,192 +2,71 @@
     xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
     data-namespace-typo3-fluid="true"
 >
-<div class="donation-form">
+<div class="donation-form" data-sepa-donation-form data-sepa-endpoint="{endpointPath}">
+    <input type="hidden" name="formToken" value="{formToken}" />
 
     <div class="donation-amount">
-
         <div class="donation-amount__preoptions">
             <f:for each="{amounts}" as="amount">
-                <button
-                    type="button"
-                    class="donation-amount__btn"
-                    data-amount="{amount}"
-                >
+                <button type="button" class="donation-amount__btn" data-sepa-amount="{amount}">
                     {amount} €
                 </button>
             </f:for>
         </div>
 
         <div class="donation-amount__custom">
-            <label for="donation-amount-input" class="donation-amount__label">
-                Individueller Betrag
-            </label>
+            <label class="donation-amount__label">Individueller Betrag</label>
             <div class="donation-amount__input-wrapper">
-                <input
-                    type="number"
-                    id="donation-amount-input"
-                    class="donation-amount__input"
-                    name="betrag"
-                    min="1"
-                    step="1"
-                    placeholder="0"
-                    autocomplete="off"
-                />
+                <input type="number" class="donation-amount__input" name="amount" min="1" step="1" placeholder="0" autocomplete="off" data-sepa-custom-amount />
                 <span class="donation-amount__currency" aria-hidden="true">€</span>
             </div>
         </div>
-
     </div>
 
     <div class="donation-receipt">
-
         <div class="donation-receipt__toggle">
-            <input
-                type="checkbox"
-                id="donation-receipt-check"
-                class="donation-receipt__checkbox"
-                name="needReceipt"
-                value="1"
-            />
-            <label for="donation-receipt-check" class="donation-receipt__label">
-                Ich möchte eine Spendenquittung erhalten
-            </label>
+            <input type="checkbox" class="donation-receipt__checkbox" name="needReceipt" value="1" data-sepa-receipt-toggle />
+            <span class="donation-receipt__label">Ich möchte eine Spendenquittung erhalten</span>
         </div>
 
-        <div class="donation-receipt__address" id="donation-address" aria-hidden="true">
-
+        <div class="donation-receipt__address" aria-hidden="true" data-sepa-receipt-address>
             <div class="donation-address__group donation-address__group--name">
-                <div class="donation-address__field">
-                    <label for="donation-firstname" class="donation-address__label">Vorname</label>
-                    <input
-                        type="text"
-                        id="donation-firstname"
-                        class="donation-address__input"
-                        name="address[firstname]"
-                        autocomplete="given-name"
-                    />
-                </div>
-                <div class="donation-address__field">
-                    <label for="donation-lastname" class="donation-address__label">Nachname</label>
-                    <input
-                        type="text"
-                        id="donation-lastname"
-                        class="donation-address__input"
-                        name="address[lastname]"
-                        autocomplete="family-name"
-                    />
-                </div>
+                <div class="donation-address__field"><label class="donation-address__label">Vorname</label><input type="text" class="donation-address__input" name="address[firstname]" autocomplete="given-name" /></div>
+                <div class="donation-address__field"><label class="donation-address__label">Nachname</label><input type="text" class="donation-address__input" name="address[lastname]" autocomplete="family-name" /></div>
             </div>
-
-            <div class="donation-address__field">
-                <label for="donation-street" class="donation-address__label">Straße und Hausnummer</label>
-                <input
-                    type="text"
-                    id="donation-street"
-                    class="donation-address__input"
-                    name="address[street]"
-                    autocomplete="street-address"
-                />
-            </div>
-
+            <div class="donation-address__field"><label class="donation-address__label">Straße und Hausnummer</label><input type="text" class="donation-address__input" name="address[street]" autocomplete="street-address" /></div>
             <div class="donation-address__group donation-address__group--location">
-                <div class="donation-address__field donation-address__field--postalcode">
-                    <label for="donation-postalcode" class="donation-address__label">PLZ</label>
-                    <input
-                        type="text"
-                        id="donation-postalcode"
-                        class="donation-address__input"
-                        name="address[postalcode]"
-                        maxlength="5"
-                        inputmode="numeric"
-                        autocomplete="postal-code"
-                    />
-                </div>
-                <div class="donation-address__field">
-                    <label for="donation-location" class="donation-address__label">Ort</label>
-                    <input
-                        type="text"
-                        id="donation-location"
-                        class="donation-address__input"
-                        name="address[location]"
-                        autocomplete="address-level2"
-                    />
-                </div>
+                <div class="donation-address__field donation-address__field--postalcode"><label class="donation-address__label">PLZ</label><input type="text" class="donation-address__input" name="address[postalcode]" maxlength="10" autocomplete="postal-code" /></div>
+                <div class="donation-address__field"><label class="donation-address__label">Ort</label><input type="text" class="donation-address__input" name="address[location]" autocomplete="address-level2" /></div>
             </div>
-
             <div class="donation-address__field">
-                <label for="donation-email" class="donation-address__label">
-                    E-Mail
-                    <span class="donation-address__hint">Für die Zusendung der Quittung</span>
-                </label>
-                <input
-                    type="email"
-                    id="donation-email"
-                    class="donation-address__input"
-                    name="address[email]"
-                    autocomplete="email"
-                    inputmode="email"
-                />
+                <label class="donation-address__label">E-Mail <span class="donation-address__hint">Für die Zusendung der Quittung</span></label>
+                <input type="email" class="donation-address__input" name="address[email]" autocomplete="email" inputmode="email" />
             </div>
-
         </div>
-
     </div>
 
-    <div class="donation-submit">
-        <button
-            type="button"
-            id="donation-submit-btn"
-            class="donation-submit__btn"
-            disabled
-        >
-            Jetzt spenden
-        </button>
+    <div class="donation-honeypot" aria-hidden="true">
+        <label>Firma <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
     </div>
 
-    <div class="donation-result" id="donation-result" aria-live="polite" aria-hidden="true">
+    <div class="donation-submit"><button type="button" class="donation-submit__btn" disabled data-sepa-submit>Jetzt spenden</button></div>
 
-        <div class="donation-result__qr">
-            <img
-                id="donation-qr-img"
-                class="donation-result__qr-img"
-                src=""
-                alt="EPC GiroCode für Ihre Überweisung"
-                width="200"
-                height="200"
-            />
-        </div>
-
+    <div class="donation-result" aria-live="polite" aria-hidden="true" data-sepa-result>
+        <div class="donation-result__qr"><img class="donation-result__qr-img" src="" alt="EPC GiroCode für Ihre Überweisung" width="200" height="200" data-sepa-qr-code /></div>
         <div class="donation-result__info">
-
             <dl class="donation-result__data">
-                <dt class="donation-result__label">Betrag</dt>
-                <dd class="donation-result__value donation-result__value--copyable" id="donation-result-amount"></dd>
-
-                <dt class="donation-result__label">Empfänger</dt>
-                <dd class="donation-result__value donation-result__value--copyable">{settings.recipient}</dd>
-
-                <dt class="donation-result__label">IBAN</dt>
-                <dd class="donation-result__value donation-result__value--copyable donation-result__value--mono">{settings.iban}</dd>
-
-                <dt class="donation-result__label">Verwendungszweck</dt>
-                <dd class="donation-result__value donation-result__value--copyable donation-result__value--mono" id="donation-result-reference"></dd>
+                <dt class="donation-result__label">Betrag</dt><dd class="donation-result__value donation-result__value--copyable" data-sepa-copy data-sepa-result-amount></dd>
+                <dt class="donation-result__label">Empfänger</dt><dd class="donation-result__value donation-result__value--copyable" data-sepa-copy>{settings.recipient}</dd>
+                <dt class="donation-result__label">IBAN</dt><dd class="donation-result__value donation-result__value--copyable donation-result__value--mono" data-sepa-copy>{settings.iban}</dd>
+                <dt class="donation-result__label">Verwendungszweck</dt><dd class="donation-result__value donation-result__value--copyable donation-result__value--mono" data-sepa-copy data-sepa-result-purpose></dd>
             </dl>
-
-            <p class="donation-result__hint">
-                Scannen Sie den QR-Code mit Ihrer Banking-App.
-                Betrag und Verwendungszweck werden automatisch vorausgefüllt.
-            </p>
-
-            <p class="donation-result__confirmation" id="donation-confirmation"></p>
-
+            <p class="donation-result__hint">Scannen Sie den QR-Code mit Ihrer Banking-App. Betrag und Verwendungszweck werden automatisch vorausgefüllt.</p>
+            <p class="donation-result__confirmation" data-sepa-confirmation></p>
         </div>
-
     </div>
-
 </div>
 
 <f:asset.css identifier="sepa_donation_css" href="EXT:sepa_donate/Resources/Public/Css/sepa_donate.css" />
 <f:asset.script identifier="sepa_donation_js" src="EXT:sepa_donate/Resources/Public/JavaScript/sepa_donate.js" defer="true" />
-
 </html>

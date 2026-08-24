@@ -12,6 +12,16 @@
     display: block;
 }
 
+.donation-honeypot {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 .donation-result {
     display: none;
 }
@@ -43,5 +53,5 @@
 .donation-result__value--copyable.is-copied::after {
     content: "✓";
     opacity: 1;
-    color: green; /* an euer Farbschema anpassen */
+    color: green;
 }

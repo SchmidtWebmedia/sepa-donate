@@ -1,10 +1,10 @@
-<f:section name="Subject">Mögliche Spende eingegangen — {reference}</f:section>
-Eine Person hat den Spendenprozess abgeschlossen.
+<f:section name="Subject">Spende angekündigt — {purpose}</f:section>
+Eine Person hat über das Spendenformular eine Überweisung vorbereitet.
 Bitte prüfen Sie Ihren Kontoauszug auf eine Überweisung mit folgendem Verwendungszweck.
 
-Referenz:  {reference}
-Betrag:    {amount -> f:format.currency(currencySign: '€', decimalSeparator: ',', thousandsSeparator: '.')}
-Datum:     {date -> f:format.date(format: 'd.m.Y H:i')} Uhr
+Verwendungszweck: {purpose}
+Betrag:           {amount -> f:format.currency(currencySign: '€', decimalSeparator: ',', thousandsSeparator: '.')}
+Datum:            {date -> f:format.date(format: 'd.m.Y H:i')} Uhr
 
 <f:if condition="{address}"><f:then>Spendenquittung gewünscht:
 
@@ -13,5 +13,5 @@ Datum:     {date -> f:format.date(format: 'd.m.Y H:i')} Uhr
   {address.postalcode} {address.location}
   {address.email}</f:then><f:else>Keine Spendenquittung gewünscht.</f:else></f:if>
 
-Bitte beachten: Die Spende gilt erst als eingegangen, wenn die Überweisung
-mit dem Verwendungszweck "{reference}" auf Ihrem Konto erscheint.
+Bitte beachten: Diese Nachricht bestätigt keinen Zahlungseingang. Die Spende gilt erst als eingegangen,
+wenn die Überweisung mit dem Verwendungszweck "{purpose}" auf Ihrem Konto erscheint.

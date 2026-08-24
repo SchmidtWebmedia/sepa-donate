@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Schmidtwebmedia\SepaDonate\Service;
 
-use Symfony\Component\Mime\Address;
 use TYPO3\CMS\Core\Mail\FluidEmail;
 use TYPO3\CMS\Core\Mail\Mailer;
 
@@ -16,9 +15,9 @@ class MailService
 
     public function sendNotification(
         string $to,
-        float  $amount,
-        string $reference,
-        array  $address = [],
+        float $amount,
+        string $purpose,
+        array $address = [],
     ): void {
         if (empty($to)) {
             return;
@@ -26,14 +25,14 @@ class MailService
 
         $email = (new FluidEmail())
             ->to($to)
-            ->subject(sprintf('Mögliche Spende eingegangen — %s', $reference))
+            ->subject(sprintf('Spende angekündigt — %s', $purpose))
             ->format(FluidEmail::FORMAT_PLAIN)
             ->setTemplate('Notification/DonationNotification')
             ->assignMultiple([
-                'amount'   => $amount,
-                'reference' => $reference,
-                'address'  => $address,
-                'date'    => new \DateTimeImmutable(),
+                'amount' => $amount,
+                'purpose' => $purpose,
+                'address' => $address,
+                'date' => new \DateTimeImmutable(),
             ]);
 
         $this->mailer->send($email);
