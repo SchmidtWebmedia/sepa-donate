@@ -12,6 +12,7 @@ use Schmidtwebmedia\SepaDonate\Service\FormTokenService;
 use Schmidtwebmedia\SepaDonate\Service\MailService;
 use Schmidtwebmedia\SepaDonate\Service\PurposeService;
 use Schmidtwebmedia\SepaDonate\Service\QrCodeService;
+use Schmidtwebmedia\SepaDonate\Service\SepaConfigurationProvider;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Site\Entity\Site;
@@ -26,6 +27,7 @@ final class QrCodeEndpoint implements MiddlewareInterface
         private readonly QrCodeService $qrCodeService,
         private readonly MailService $mailService,
         private readonly FormTokenService $formTokenService,
+        private readonly SepaConfigurationProvider $configurationProvider,
         private readonly CacheManager $cacheManager,
     ) {}
 
@@ -86,10 +88,10 @@ final class QrCodeEndpoint implements MiddlewareInterface
             return new JsonResponse(['error' => 'Valid amount is required'], 400);
         }
 
-        $settings = $site->getSettings();
-        $iban = trim((string)$settings->get('sepaDonate.iban'));
-        $bic = trim((string)$settings->get('sepaDonate.bic'));
-        $recipient = trim((string)$settings->get('sepaDonate.recipient'));
+        $configuration = $this->configurationProvider->forSite($site);
+        $iban = $configuration['iban'];
+        $bic = $configuration['bic'];
+        $recipient = $configuration['recipient'];
 
         if ($iban === '' || $recipient === '') {
             return new JsonResponse(['error' => 'SEPA settings incomplete'], 500);
@@ -114,7 +116,7 @@ final class QrCodeEndpoint implements MiddlewareInterface
         );
 
         $this->mailService->sendNotification(
-            to: (string)$settings->get('sepaDonate.mail.to'),
+            to: $configuration['mailTo'],
             amount: $amount,
             purpose: $purpose,
             address: $address,

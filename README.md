@@ -123,6 +123,18 @@ plugin.tx_sepadonate {
 
 CSS classes and HTML IDs are not part of the JavaScript API and can be changed freely when overriding the template.
 
+The controller provides the following template variables from the current TYPO3 site settings:
+
+| Variable | Content |
+| --- | --- |
+| `{amounts}` | List of configured donation amounts |
+| `{donationSettings.recipient}` | Name of the payment recipient |
+| `{donationSettings.iban}` | IBAN of the donation account |
+| `{endpointPath}` | Site-aware QR-code endpoint path |
+| `{formToken}` | Short-lived form token |
+
+Payment details and predefined amounts are read directly from the current site. The QR-code endpoint uses the same configuration provider, ensuring that displayed payment details and generated GiroCodes cannot diverge.
+
 The `data-sepa-*` attributes are the stable hooks used by the extension JavaScript and must be preserved. The field names used for submitted data, especially `address[...]`, `formToken` and `company`, must also remain unchanged.
 
 This separation allows the HTML structure and visual styling to be adapted extensively without coupling the JavaScript behavior to project-specific CSS classes.

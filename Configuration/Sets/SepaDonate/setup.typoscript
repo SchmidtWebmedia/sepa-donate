@@ -1,16 +1,4 @@
 plugin.tx_sepadonate {
-	settings {
-		iban         ={$sepaDonate.iban}
-		bic = {$sepaDonate.bic}
-		recipient   ={$sepaDonate.recipient}
-
-		button_bar_amounts     = {$sepaDonate.buttonBarAmounts}
-
-		email {
-			to       ={$sepaDonate.mail.to}
-		}
-	}
-
 	view {
 		templateRootPaths {
 			0 = EXT:sepa_donate/Resources/Private/Templates/
