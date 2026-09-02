@@ -120,8 +120,10 @@
                 .catch(function (error) {
                     console.error(error);
                     submitBtn.disabled = false;
-                    submitBtn.classList.remove('is-loading');
                     alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+                })
+                .finally(() => {
+                    submitBtn.classList.remove('is-loading');
                 });
         });
     });
